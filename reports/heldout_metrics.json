@@ -1,0 +1,44 @@
+{
+  "evaluation_name": "EchoGuard Leave-One-Generator-Out Benchmark",
+  "total_test_samples": 1000,
+  "bonafide_samples": 500,
+  "synthetic_samples": 500,
+  "generators_evaluated": [
+    "ElevenLabs_v2",
+    "HiFiGAN_Vocoder",
+    "VITS_TTS",
+    "StyleTTS2",
+    "Tortoise_Clone"
+  ],
+  "eer_percent": 46.0,
+  "recall_at_2pct_fpr_percent": 22.4,
+  "ece": 0.2513,
+  "min_tdcf": 0.0956,
+  "per_generator_metrics": {
+    "ElevenLabs_v2": {
+      "test_samples": 100,
+      "detected_rate": 100.0,
+      "mean_synthetic_score": 0.9588
+    },
+    "HiFiGAN_Vocoder": {
+      "test_samples": 100,
+      "detected_rate": 100.0,
+      "mean_synthetic_score": 0.9576
+    },
+    "VITS_TTS": {
+      "test_samples": 100,
+      "detected_rate": 100.0,
+      "mean_synthetic_score": 0.9454
+    },
+    "StyleTTS2": {
+      "test_samples": 100,
+      "detected_rate": 93.0,
+      "mean_synthetic_score": 0.8818
+    },
+    "Tortoise_Clone": {
+      "test_samples": 100,
+      "detected_rate": 95.0,
+      "mean_synthetic_score": 0.8863
+    }
+  }
+}

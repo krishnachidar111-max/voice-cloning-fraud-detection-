@@ -1,0 +1,153 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root {
+  --bg-primary: #0a0e1a;
+  --bg-card: rgba(16, 24, 40, 0.75);
+  --bg-card-hover: rgba(22, 34, 56, 0.85);
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-glow: rgba(59, 130, 246, 0.3);
+  
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --text-dim: #64748b;
+
+  --tier-green: #10b981;
+  --tier-green-glow: rgba(16, 185, 129, 0.25);
+  --tier-amber: #f59e0b;
+  --tier-amber-glow: rgba(245, 158, 11, 0.25);
+  --tier-orange: #f97316;
+  --tier-orange-glow: rgba(249, 115, 22, 0.25);
+  --tier-red: #ef4444;
+  --tier-red-glow: rgba(239, 68, 68, 0.35);
+
+  --accent-cyan: #06b6d4;
+  --accent-blue: #3b82f6;
+  --accent-purple: #8b5cf6;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background-color: var(--bg-primary);
+  color: var(--text-main);
+  min-height: 100vh;
+  overflow-x: hidden;
+  background-image: 
+    radial-gradient(circle at 15% 15%, rgba(59, 130, 246, 0.06) 0%, transparent 40%),
+    radial-gradient(circle at 85% 85%, rgba(139, 92, 246, 0.06) 0%, transparent 40%);
+}
+
+code, pre, .font-mono {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Glassmorphic Cards */
+.glass-panel {
+  background: var(--bg-card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  transition: all 0.2s ease-in-out;
+}
+
+.glass-panel:hover {
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+/* Tier Badges */
+.tier-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.tier-badge-green {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  box-shadow: 0 0 16px var(--tier-green-glow);
+}
+
+.tier-badge-amber {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  box-shadow: 0 0 16px var(--tier-amber-glow);
+}
+
+.tier-badge-orange {
+  background: rgba(249, 115, 22, 0.15);
+  color: #fb923c;
+  border: 1px solid rgba(249, 115, 22, 0.4);
+  box-shadow: 0 0 16px var(--tier-orange-glow);
+}
+
+.tier-badge-red {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  box-shadow: 0 0 20px var(--tier-red-glow);
+  animation: pulse-red 2s infinite ease-in-out;
+}
+
+@keyframes pulse-red {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(239, 68, 68, 0.6);
+  }
+}
+
+/* Audio Waveform Animation */
+.waveform-container {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 28px;
+}
+
+.waveform-bar {
+  width: 4px;
+  background: linear-gradient(180deg, #38bdf8, #2563eb);
+  border-radius: 2px;
+  animation: wave 1.2s infinite ease-in-out;
+}
+
+.waveform-bar:nth-child(1) { animation-delay: 0.1s; height: 10px; }
+.waveform-bar:nth-child(2) { animation-delay: 0.2s; height: 22px; }
+.waveform-bar:nth-child(3) { animation-delay: 0.3s; height: 16px; }
+.waveform-bar:nth-child(4) { animation-delay: 0.4s; height: 26px; }
+.waveform-bar:nth-child(5) { animation-delay: 0.5s; height: 18px; }
+.waveform-bar:nth-child(6) { animation-delay: 0.2s; height: 12px; }
+
+@keyframes wave {
+  0%, 100% { transform: scaleY(0.4); }
+  50% { transform: scaleY(1.0); }
+}
+
+/* Mock Marker Label */
+.mock-pill {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px dashed rgba(245, 158, 11, 0.4);
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}

@@ -1,0 +1,13 @@
+Slice Type,Slice Name,Samples,False Challenges,FCR (%),95% CI Lower,95% CI Upper,Status
+Language/Dialect,Indian English (Urban),100,0,0.0%,0.0%,3.7%,PASS
+Language/Dialect,Hindi (Regional / Rural),100,0,0.0%,0.0%,3.7%,PASS
+Language/Dialect,Bengali (Eastern Dialect),80,0,0.0%,0.0%,4.58%,PASS
+Language/Dialect,Tamil (Southern Accent),80,0,0.0%,0.0%,4.58%,PASS
+Language/Dialect,Telugu (Southern Accent),80,0,0.0%,0.0%,4.58%,PASS
+Demographic,Youth (18 - 30 yrs),100,0,0.0%,0.0%,3.7%,PASS
+Demographic,Adult (31 - 59 yrs),100,0,0.0%,0.0%,3.7%,PASS
+Demographic,"Elderly (60+ yrs, Tremor)",100,0,0.0%,0.0%,3.7%,PASS
+Channel/Codec,Wideband 16kHz (VolTE),100,0,0.0%,0.0%,3.7%,PASS
+Channel/Codec,PSTN G.711 mu-law (8kHz),100,0,0.0%,0.0%,3.7%,PASS
+Channel/Codec,VoIP Packet Loss (3% Burst),80,0,0.0%,0.0%,4.58%,PASS
+Channel/Codec,Heavy Traffic Noise (12dB SNR),80,80,100.0%,95.42%,100.0%,BREACH (>3%)

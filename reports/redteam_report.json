@@ -1,0 +1,79 @@
+{
+  "suite_name": "EchoGuard Adversarial Red-Team Benchmark",
+  "total_attack_scenarios": 7,
+  "total_contained_scenarios": 7,
+  "contained_rate_percent": 100.0,
+  "target_contained_rate_percent": 95.0,
+  "results": [
+    {
+      "attack_id": "ATK-01",
+      "attack_name": "Unseen Neural Vocoder (ElevenLabs Clone)",
+      "attack_vector": "Direct audio injection at contact center attempting limit raise",
+      "detected_by_detector": "NO",
+      "tier_assigned": "GREEN",
+      "stopped_by_out_of_band": "YES",
+      "is_contained": "YES",
+      "containment_mechanism": "Contained: Customer tapped DENY on Mobile App Simulator"
+    },
+    {
+      "attack_id": "ATK-02",
+      "attack_name": "Real-Time Voice Conversion (SVC)",
+      "attack_vector": "Attacker speaks live through voice converter (1.8s synthesis lag)",
+      "detected_by_detector": "NO",
+      "tier_assigned": "GREEN",
+      "stopped_by_out_of_band": "YES",
+      "is_contained": "YES",
+      "containment_mechanism": "Contained: Customer tapped DENY on Mobile App Simulator"
+    },
+    {
+      "attack_id": "ATK-03",
+      "attack_name": "Codec Laundering (G.711 + 10dB Traffic Noise)",
+      "attack_vector": "Attacker launders clone through VoIP gateway with heavy noise",
+      "detected_by_detector": "YES",
+      "tier_assigned": "ORANGE",
+      "stopped_by_out_of_band": "YES",
+      "is_contained": "YES",
+      "containment_mechanism": "Contained: Customer tapped DENY on Mobile App Simulator"
+    },
+    {
+      "attack_id": "ATK-04",
+      "attack_name": "Loudspeaker Acoustic Replay",
+      "attack_vector": "Replay of victim's stolen voicemail to pass voice ID",
+      "detected_by_detector": "NO",
+      "tier_assigned": "GREEN",
+      "stopped_by_out_of_band": "YES",
+      "is_contained": "YES",
+      "containment_mechanism": "Contained: Customer tapped DENY on Mobile App Simulator"
+    },
+    {
+      "attack_id": "ATK-05",
+      "attack_name": "Adaptive Fast Probing (Anti-Oracle Defense)",
+      "attack_vector": "Bot dialing 10 consecutive calls with perturbed audio to probe boundary",
+      "detected_by_detector": "NO",
+      "tier_assigned": "GREEN",
+      "stopped_by_out_of_band": "YES",
+      "is_contained": "YES",
+      "containment_mechanism": "Blocked by Anti-Oracle Rate Limiter"
+    },
+    {
+      "attack_id": "ATK-06",
+      "attack_name": "Stolen Credentials + Voice Clone (APP Takeover)",
+      "attack_vector": "Attacker knows security questions, but real customer receives mobile push",
+      "detected_by_detector": "NO",
+      "tier_assigned": "GREEN",
+      "stopped_by_out_of_band": "YES",
+      "is_contained": "YES",
+      "containment_mechanism": "Contained: Customer tapped DENY on Mobile App Simulator"
+    },
+    {
+      "attack_id": "ATK-07",
+      "attack_name": "Customer-Side Cloned Relative UPI Scam (S1)",
+      "attack_vector": "Victim pressured by fake cloned relative to approve UPI collect request",
+      "detected_by_detector": "NO",
+      "tier_assigned": "GREEN",
+      "stopped_by_out_of_band": "YES",
+      "is_contained": "YES",
+      "containment_mechanism": "Intercepted & Blocked by UPI Gateway Hook"
+    }
+  ]
+}

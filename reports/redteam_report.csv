@@ -1,0 +1,8 @@
+Attack ID,Attack Scenario,Detected by Model?,Assigned Tier,Out-of-Band Containment?,Contained?,Mechanism
+ATK-01,Unseen Neural Vocoder (ElevenLabs Clone),NO,GREEN,YES,YES,Contained: Customer tapped DENY on Mobile App Simulator
+ATK-02,Real-Time Voice Conversion (SVC),NO,GREEN,YES,YES,Contained: Customer tapped DENY on Mobile App Simulator
+ATK-03,Codec Laundering (G.711 + 10dB Traffic Noise),YES,ORANGE,YES,YES,Contained: Customer tapped DENY on Mobile App Simulator
+ATK-04,Loudspeaker Acoustic Replay,NO,GREEN,YES,YES,Contained: Customer tapped DENY on Mobile App Simulator
+ATK-05,Adaptive Fast Probing (Anti-Oracle Defense),NO,GREEN,YES,YES,Blocked by Anti-Oracle Rate Limiter
+ATK-06,Stolen Credentials + Voice Clone (APP Takeover),NO,GREEN,YES,YES,Contained: Customer tapped DENY on Mobile App Simulator
+ATK-07,Customer-Side Cloned Relative UPI Scam (S1),NO,GREEN,YES,YES,Intercepted & Blocked by UPI Gateway Hook

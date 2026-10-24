@@ -1,0 +1,5 @@
+Metric,Target,Measured Value,Status
+Equal Error Rate (EER),<= 5.0%,46.0%,FAIL
+Recall @ <=2% FPR,>= 85.0%,22.4%,FAIL
+Calibration Error (ECE),<= 0.05,0.2513,FAIL
+min-tDCF,<= 0.15,0.0956,PASS

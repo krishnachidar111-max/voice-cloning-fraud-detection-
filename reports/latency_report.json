@@ -1,0 +1,16 @@
+{
+  "benchmark": "EchoGuard Streaming Window Latency Benchmark",
+  "iterations": 150,
+  "window_duration_seconds": 2.0,
+  "sample_rate_hz": 16000,
+  "hardware_target": "x86_64 Commodity CPU Fallback",
+  "p50_latency_ms": 9.42,
+  "p90_latency_ms": 15.44,
+  "p95_latency_ms": 29.26,
+  "p99_latency_ms": 44.19,
+  "mean_latency_ms": 11.88,
+  "min_latency_ms": 7.48,
+  "max_latency_ms": 60.76,
+  "sla_target_ms": 1000.0,
+  "sla_compliant": true
+}

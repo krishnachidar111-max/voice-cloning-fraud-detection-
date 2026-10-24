@@ -1,0 +1,128 @@
+{
+  "report_title": "EchoGuard Slice Fairness & False Challenge Report",
+  "total_evaluated_samples": 1100,
+  "overall_false_challenge_rate_pct": 7.27,
+  "target_fcr_threshold_pct": 3.0,
+  "slices": [
+    {
+      "slice_type": "Language/Dialect",
+      "slice_name": "Indian English (Urban)",
+      "test_samples": 100,
+      "false_challenges": 0,
+      "false_challenge_rate_pct": 0.0,
+      "ci_95_lower": 0.0,
+      "ci_95_upper": 3.7,
+      "breach_flag": false
+    },
+    {
+      "slice_type": "Language/Dialect",
+      "slice_name": "Hindi (Regional / Rural)",
+      "test_samples": 100,
+      "false_challenges": 0,
+      "false_challenge_rate_pct": 0.0,
+      "ci_95_lower": 0.0,
+      "ci_95_upper": 3.7,
+      "breach_flag": false
+    },
+    {
+      "slice_type": "Language/Dialect",
+      "slice_name": "Bengali (Eastern Dialect)",
+      "test_samples": 80,
+      "false_challenges": 0,
+      "false_challenge_rate_pct": 0.0,
+      "ci_95_lower": 0.0,
+      "ci_95_upper": 4.58,
+      "breach_flag": false
+    },
+    {
+      "slice_type": "Language/Dialect",
+      "slice_name": "Tamil (Southern Accent)",
+      "test_samples": 80,
+      "false_challenges": 0,
+      "false_challenge_rate_pct": 0.0,
+      "ci_95_lower": 0.0,
+      "ci_95_upper": 4.58,
+      "breach_flag": false
+    },
+    {
+      "slice_type": "Language/Dialect",
+      "slice_name": "Telugu (Southern Accent)",
+      "test_samples": 80,
+      "false_challenges": 0,
+      "false_challenge_rate_pct": 0.0,
+      "ci_95_lower": 0.0,
+      "ci_95_upper": 4.58,
+      "breach_flag": false
+    },
+    {
+      "slice_type": "Demographic",
+      "slice_name": "Youth (18 - 30 yrs)",
+      "test_samples": 100,
+      "false_challenges": 0,
+      "false_challenge_rate_pct": 0.0,
+      "ci_95_lower": 0.0,
+      "ci_95_upper": 3.7,
+      "breach_flag": false
+    },
+    {
+      "slice_type": "Demographic",
+      "slice_name": "Adult (31 - 59 yrs)",
+      "test_samples": 100,
+      "false_challenges": 0,
+      "false_challenge_rate_pct": 0.0,
+      "ci_95_lower": 0.0,
+      "ci_95_upper": 3.7,
+      "breach_flag": false
+    },
+    {
+      "slice_type": "Demographic",
+      "slice_name": "Elderly (60+ yrs, Tremor)",
+      "test_samples": 100,
+      "false_challenges": 0,
+      "false_challenge_rate_pct": 0.0,
+      "ci_95_lower": 0.0,
+      "ci_95_upper": 3.7,
+      "breach_flag": false
+    },
+    {
+      "slice_type": "Channel/Codec",
+      "slice_name": "Wideband 16kHz (VolTE)",
+      "test_samples": 100,
+      "false_challenges": 0,
+      "false_challenge_rate_pct": 0.0,
+      "ci_95_lower": 0.0,
+      "ci_95_upper": 3.7,
+      "breach_flag": false
+    },
+    {
+      "slice_type": "Channel/Codec",
+      "slice_name": "PSTN G.711 mu-law (8kHz)",
+      "test_samples": 100,
+      "false_challenges": 0,
+      "false_challenge_rate_pct": 0.0,
+      "ci_95_lower": 0.0,
+      "ci_95_upper": 3.7,
+      "breach_flag": false
+    },
+    {
+      "slice_type": "Channel/Codec",
+      "slice_name": "VoIP Packet Loss (3% Burst)",
+      "test_samples": 80,
+      "false_challenges": 0,
+      "false_challenge_rate_pct": 0.0,
+      "ci_95_lower": 0.0,
+      "ci_95_upper": 4.58,
+      "breach_flag": false
+    },
+    {
+      "slice_type": "Channel/Codec",
+      "slice_name": "Heavy Traffic Noise (12dB SNR)",
+      "test_samples": 80,
+      "false_challenges": 80,
+      "false_challenge_rate_pct": 100.0,
+      "ci_95_lower": 95.42,
+      "ci_95_upper": 100.0,
+      "breach_flag": true
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+Percentile / Metric,Measured Latency (ms),SLA Target (ms),Status
+p50 (Median),9.42,1000.0,PASS
+p90,15.44,1000.0,PASS
+p95 (Critical SLA),29.26,1000.0,PASS
+p99,44.19,1000.0,PASS
+Mean,11.88,1000.0,PASS
+Max,60.76,1000.0,PASS

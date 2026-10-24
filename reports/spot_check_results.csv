@@ -1,0 +1,5 @@
+sample_index,filename,duration_s,expected_label,predicted_label,synthetic_score,calibrated_llr,tier,risk_score,is_correct,reason_codes,latency_ms
+1,sample_01_bonafide_hindi_customer.wav,2.0,bonafide,bonafide,0.005,-5.0,GREEN,-3.15,TRUE,AUD-TELEPHONY-CODEC-CHANNEL,58.27
+2,sample_02_spoof_elevenlabs_clone.wav,2.0,synthetic,synthetic,0.8979,2.1741,GREEN,0.08,TRUE,AUD-TELEPHONY-CODEC-CHANNEL,24.0
+3,sample_03_bonafide_accented_elderly.wav,2.0,bonafide,bonafide,0.005,-5.0,GREEN,-3.15,TRUE,AUD-TELEPHONY-CODEC-CHANNEL,35.67
+4,sample_04_spoof_vits_neural_vocoder.wav,2.0,synthetic,synthetic,0.8979,2.1741,GREEN,0.08,TRUE,AUD-TELEPHONY-CODEC-CHANNEL,20.0
