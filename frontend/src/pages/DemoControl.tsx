@@ -3,7 +3,6 @@ import {
   Mic,
   MicOff,
   Upload,
-  Play,
   ShieldCheck,
   ShieldAlert,
   AlertTriangle,
@@ -13,7 +12,11 @@ import {
   Smartphone,
   PhoneCall,
   Lock,
-  ArrowRight
+  ArrowRight,
+  Activity,
+  Layers,
+  ChevronRight,
+  Info
 } from 'lucide-react';
 import { StreamingVerdict, analyzeAudioFile, requestStepUp } from '../services/api';
 
@@ -22,24 +25,67 @@ interface DemoControlProps {
   setVerdict: (v: StreamingVerdict | null) => void;
   onNavigateToCustomer: () => void;
   onNavigateToAnalyst: () => void;
+  isFallbackMode?: boolean;
 }
 
 export const DemoControl: React.FC<DemoControlProps> = ({
   verdict,
   setVerdict,
   onNavigateToCustomer,
-  onNavigateToAnalyst
+  onNavigateToAnalyst,
+  isFallbackMode = false
 }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [selectedAction, setSelectedAction] = useState('add_payee');
   const [amount, setAmount] = useState<number>(85000);
   const [isProcessing, setIsProcessing] = useState(false);
   const [activeScenario, setActiveScenario] = useState<string>('scenario_b');
-  const [sessionId, setSessionId] = useState<string>('SESS-DEMO-8041');
+  const [currentStepIndex, setCurrentStepIndex] = useState<number>(2);
+  const [sessionId, setSessionId] = useState<string>('SESS-DELHI-8041');
   const [audioBlobUrl, setAudioBlobUrl] = useState<string | null>(null);
+  const [historyScores, setHistoryScores] = useState<number[]>([0.1, 0.2, 0.45, 0.8, 1.4, 2.2, 3.8, 5.4]);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const animationFrameRef = useRef<number | null>(null);
+
+  // Animated live waveform simulation
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let phase = 0;
+    const render = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const width = canvas.width;
+      const height = canvas.height;
+      const mid = height / 2;
+
+      ctx.beginPath();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = isRecording ? '#ef4444' : '#38bdf8';
+
+      for (let x = 0; x < width; x++) {
+        const freq = isRecording ? 0.05 : 0.02;
+        const amp = isRecording ? 25 * Math.sin(x * 0.01 + phase) : 10;
+        const y = mid + Math.sin(x * freq + phase) * amp * Math.sin(x * 0.02);
+        if (x === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+
+      phase += isRecording ? 0.15 : 0.03;
+      animationFrameRef.current = requestAnimationFrame(render);
+    };
+
+    render();
+    return () => {
+      if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
+    };
+  }, [isRecording]);
 
   // 1. Microphone Live Recording Handler
   const startRecording = async () => {
@@ -77,12 +123,13 @@ export const DemoControl: React.FC<DemoControlProps> = ({
     }
   };
 
-  // 2. Audio File Processing (Upload or Preset)
+  // 2. Audio File Processing
   const handleAudioFileProcess = async (file: File) => {
     setIsProcessing(true);
     try {
       const res = await analyzeAudioFile(file, sessionId, selectedAction, amount);
       setVerdict(res);
+      setHistoryScores(prev => [...prev.slice(-7), res.risk_score]);
     } catch (err) {
       console.error('Inference error:', err);
     } finally {
@@ -99,14 +146,13 @@ export const DemoControl: React.FC<DemoControlProps> = ({
   };
 
   // 3. Scenario Presets
-  const applyPreset = async (scenario: string) => {
+  const applyPreset = (scenario: string) => {
     setActiveScenario(scenario);
-    setIsProcessing(true);
-
     if (scenario === 'scenario_a') {
-      // Legit Customer, Balance Check
       setSelectedAction('balance_inquiry');
       setAmount(0);
+      setCurrentStepIndex(1);
+      setHistoryScores([0.05, 0.1, 0.12, 0.15, 0.2, 0.18, 0.22, 0.35]);
       setVerdict({
         session_id: 'SESS-LEGIT-1001',
         timestamp: new Date().toISOString(),
@@ -131,11 +177,11 @@ export const DemoControl: React.FC<DemoControlProps> = ({
         agent_guidance: 'Standard customer servicing. All security verifications clear.',
         recommended_action: 'Proceed with requested workflow normally.'
       });
-      setIsProcessing(false);
     } else if (scenario === 'scenario_b') {
-      // Cloned Voice Attacker at Contact Center
       setSelectedAction('add_payee');
       setAmount(95000);
+      setCurrentStepIndex(2);
+      setHistoryScores([0.2, 0.6, 1.2, 2.1, 3.4, 4.2, 4.9, 5.4]);
       setVerdict({
         session_id: 'SESS-ATTACK-2002',
         timestamp: new Date().toISOString(),
@@ -174,11 +220,11 @@ export const DemoControl: React.FC<DemoControlProps> = ({
         agent_guidance: 'Security policy hold triggered. Warm transfer to Senior Fraud Specialist required.',
         recommended_action: 'Keep customer on hold. Account temporarily protected pending analyst review.'
       });
-      setIsProcessing(false);
     } else if (scenario === 'scenario_c') {
-      // Genuine Accented Customer on Noisy Line (False-Positive Path)
       setSelectedAction('raise_limit');
       setAmount(30000);
+      setCurrentStepIndex(2);
+      setHistoryScores([0.3, 0.5, 0.8, 1.1, 1.4, 1.6, 1.75, 1.85]);
       setVerdict({
         session_id: 'SESS-ACCENT-3003',
         timestamp: new Date().toISOString(),
@@ -203,11 +249,11 @@ export const DemoControl: React.FC<DemoControlProps> = ({
         agent_guidance: 'Routine high-assurance confirmation initiated.',
         recommended_action: 'Prompt customer to tap Confirm on their mobile banking notification.'
       });
-      setIsProcessing(false);
     } else if (scenario === 'scenario_d') {
-      // Customer-Side UPI Collect Scam
       setSelectedAction('upi_collect_request');
       setAmount(45000);
+      setCurrentStepIndex(3);
+      setHistoryScores([0.4, 0.9, 1.5, 2.1, 2.6, 3.0, 3.2, 3.4]);
       setVerdict({
         session_id: 'SESS-UPI-4004',
         timestamp: new Date().toISOString(),
@@ -233,7 +279,6 @@ export const DemoControl: React.FC<DemoControlProps> = ({
         agent_guidance: 'Secondary authentication required for sensitive action.',
         recommended_action: 'Mandatory mobile app approval in progress. Do not proceed until verified.'
       });
-      setIsProcessing(false);
     }
   };
 
@@ -247,79 +292,255 @@ export const DemoControl: React.FC<DemoControlProps> = ({
     }
   };
 
+  // Plain sentence helper
+  const getPlainSentence = (tier?: string) => {
+    switch (tier) {
+      case 'GREEN': return 'Sounds genuine';
+      case 'AMBER': return 'Extra check needed';
+      case 'ORANGE': return 'Verification required';
+      case 'RED': return 'Sensitive actions frozen';
+      default: return 'Awaiting live input';
+    }
+  };
+
+  const getTierColor = (tier?: string) => {
+    switch (tier) {
+      case 'GREEN': return '#10b981';
+      case 'AMBER': return '#f59e0b';
+      case 'ORANGE': return '#f97316';
+      case 'RED': return '#ef4444';
+      default: return '#64748b';
+    }
+  };
+
+  const journeySteps = [
+    { title: 'Call Ingress', desc: 'Attack / call reaches system' },
+    { title: 'Multi-Family Alert', desc: 'Audio + Context risk evaluated' },
+    { title: 'Customer Action', desc: 'Out-of-band mobile verification' },
+    { title: 'Analyst Review', desc: 'Dual control & hold triage' },
+    { title: 'Outcome', desc: 'Fraud contained or customer cleared' },
+  ];
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      {/* Top Banner: Core Thesis & Zero-Disk Privacy Guarantee */}
-      <div className="glass-panel" style={{ padding: '20px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', borderLeft: '4px solid #3b82f6' }}>
-        <div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      {/* Fallback Mode Banner */}
+      {isFallbackMode && (
+        <div style={{
+          padding: '12px 18px',
+          borderRadius: '8px',
+          background: 'rgba(245, 158, 11, 0.15)',
+          border: '1px solid #f59e0b',
+          color: '#fbbf24',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          fontWeight: '600',
+          fontSize: '0.88rem'
+        }}>
+          <AlertTriangle size={18} />
+          <span>FALLBACK MODE: models/head.joblib not found; using heuristic spectral engine. Results not calibrated for formal benchmarks.</span>
+        </div>
+      )}
+
+      {/* Frontline Agent Neutral Guidance Banner */}
+      {verdict && (
+        <div style={{
+          padding: '14px 20px',
+          borderRadius: '10px',
+          background: 'rgba(59, 130, 246, 0.08)',
+          border: '1px solid rgba(59, 130, 246, 0.25)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '12px'
+        }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: '700', letterSpacing: '-0.02em' }}>Live Voice Defense Controller</h2>
-            <span className="mock-pill">Interactive Demo Hub</span>
+            <Info size={18} style={{ color: '#38bdf8' }} />
+            <div>
+              <div style={{ fontSize: '0.75rem', color: '#93c5fd', textTransform: 'uppercase', fontWeight: '700' }}>
+                Operational Guidance (Neutral • Non-Accusatory)
+              </div>
+              <div style={{ fontSize: '0.92rem', fontWeight: '600', color: 'var(--text-main)', marginTop: '2px' }}>
+                {verdict.agent_guidance}
+              </div>
+            </div>
           </div>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '4px' }}>
-            Core Thesis: <span style={{ color: '#38bdf8', fontWeight: '600' }}>"Voice is evidence, never the key."</span> Even if the audio detector misses, the out-of-band step blocks the fraud.
-          </p>
+          <span style={{ fontSize: '0.8rem', color: 'var(--text-dim)', fontStyle: 'italic' }}>
+            {verdict.recommended_action}
+          </span>
         </div>
+      )}
 
-        {/* 0-byte Disk Audio Compliance Shield */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)', padding: '10px 16px', borderRadius: '10px' }}>
-          <ShieldCheck style={{ color: '#10b981' }} size={24} />
-          <div>
-            <div style={{ fontSize: '0.78rem', color: '#6ee7b7', fontWeight: '600', textTransform: 'uppercase' }}>RAM-Only Privacy Guarantee</div>
-            <div style={{ fontSize: '0.92rem', fontWeight: '700', color: '#10b981' }}>Audio Persisted: 0 bytes</div>
-          </div>
-        </div>
-      </div>
+      {/* 3-Column Main Grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr 1fr', gap: '20px' }}>
+        
+        {/* COLUMN 1: Large Status Card & Multi-Family Signals */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+          <div className="glass-panel" style={{ padding: '24px', textAlign: 'center', position: 'relative' }}>
+            <div style={{ fontSize: '0.78rem', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '14px' }}>
+              System Verdict
+            </div>
 
-      {/* Main Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '24px' }}>
-        {/* Left Column: Audio Ingest & Presets */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          {/* Audio Input Card */}
-          <div className="glass-panel" style={{ padding: '22px' }}>
-            <h3 style={{ fontSize: '1.05rem', fontWeight: '600', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Mic size={18} style={{ color: '#38bdf8' }} /> Audio Ingestion Stream
+            {/* Big Circular Tier Ring */}
+            <div style={{
+              width: '130px',
+              height: '130px',
+              borderRadius: '50%',
+              margin: '0 auto 16px auto',
+              border: `6px solid ${getTierColor(verdict?.tier)}`,
+              boxShadow: `0 0 28px ${getTierColor(verdict?.tier)}40`,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'all 0.3s ease'
+            }}>
+              <span style={{ fontSize: '1.25rem', fontWeight: '900', color: getTierColor(verdict?.tier) }}>
+                {verdict ? verdict.tier : 'READY'}
+              </span>
+              <span style={{ fontSize: '0.72rem', color: 'var(--text-dim)', fontFamily: 'monospace', marginTop: '2px' }}>
+                R: {verdict ? verdict.risk_score.toFixed(2) : '0.00'}
+              </span>
+            </div>
+
+            {/* Plain English Sentence */}
+            <h3 style={{ fontSize: '1.2rem', fontWeight: '700', color: getTierColor(verdict?.tier) }}>
+              "{getPlainSentence(verdict?.tier)}"
             </h3>
 
-            {/* Mic and File buttons */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '18px' }}>
+            {/* 3 Family Bars */}
+            <div style={{ marginTop: '22px', display: 'flex', flexDirection: 'column', gap: '12px', textAlign: 'left' }}>
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', marginBottom: '4px' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>Audio Evidence (45%)</span>
+                  <span style={{ fontFamily: 'monospace', fontWeight: '700' }}>
+                    {verdict ? verdict.llr_audio.toFixed(2) : '0.00'}
+                  </span>
+                </div>
+                <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.08)', borderRadius: '3px', overflow: 'hidden' }}>
+                  <div style={{
+                    width: `${Math.min(Math.max((((verdict?.llr_audio || 0) + 4) / 10) * 100, 5), 100)}%`,
+                    height: '100%',
+                    background: (verdict?.llr_audio || 0) > 1.0 ? '#ef4444' : '#38bdf8'
+                  }} />
+                </div>
+              </div>
+
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', marginBottom: '4px' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>Interaction Cadence (25%)</span>
+                  <span style={{ fontFamily: 'monospace', fontWeight: '700' }}>
+                    {verdict ? verdict.llr_interaction.toFixed(2) : '0.00'}
+                  </span>
+                </div>
+                <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.08)', borderRadius: '3px', overflow: 'hidden' }}>
+                  <div style={{
+                    width: `${Math.min(Math.max((((verdict?.llr_interaction || 0) + 4) / 10) * 100, 5), 100)}%`,
+                    height: '100%',
+                    background: (verdict?.llr_interaction || 0) > 1.0 ? '#f59e0b' : '#38bdf8'
+                  }} />
+                </div>
+              </div>
+
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', marginBottom: '4px' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>Transaction Context (30%)</span>
+                  <span style={{ fontFamily: 'monospace', fontWeight: '700' }}>
+                    {verdict ? verdict.llr_transaction.toFixed(2) : '0.00'}
+                  </span>
+                </div>
+                <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.08)', borderRadius: '3px', overflow: 'hidden' }}>
+                  <div style={{
+                    width: `${Math.min(Math.max((((verdict?.llr_transaction || 0) + 4) / 10) * 100, 5), 100)}%`,
+                    height: '100%',
+                    background: (verdict?.llr_transaction || 0) > 1.0 ? '#f97316' : '#38bdf8'
+                  }} />
+                </div>
+              </div>
+            </div>
+
+            {/* Reason Chips */}
+            <div style={{ marginTop: '18px', display: 'flex', flexWrap: 'wrap', gap: '6px', justifyContent: 'center' }}>
+              {verdict?.reason_codes?.map((rc, i) => (
+                <span
+                  key={i}
+                  style={{
+                    fontSize: '0.72rem',
+                    padding: '3px 8px',
+                    borderRadius: '12px',
+                    background: 'rgba(255,255,255,0.06)',
+                    border: '1px solid var(--border-subtle)',
+                    color: 'var(--text-main)'
+                  }}
+                  title={rc.plain_language_explanation}
+                >
+                  {rc.plain_language_explanation.slice(0, 32)}...
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* COLUMN 2: Waveform Canvas, Big Record Button & Rolling Score Timeline */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+          <div className="glass-panel" style={{ padding: '22px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '0.85rem', fontWeight: '600', color: 'var(--text-muted)' }}>
+                Live Acoustic Analysis Window
+              </span>
+              <span style={{ fontSize: '0.75rem', color: isRecording ? '#ef4444' : 'var(--text-dim)', fontWeight: '600' }}>
+                {isRecording ? 'RECORDING LIVE...' : 'STREAM IDLE'}
+              </span>
+            </div>
+
+            {/* Live Waveform Canvas */}
+            <div style={{ background: 'rgba(0,0,0,0.35)', borderRadius: '10px', overflow: 'hidden', border: '1px solid var(--border-subtle)', height: '110px' }}>
+              <canvas ref={canvasRef} width={400} height={110} style={{ width: '100%', height: '100%', display: 'block' }} />
+            </div>
+
+            {/* Big Record Button & Dropzone */}
+            <div style={{ display: 'flex', gap: '12px' }}>
               <button
                 onClick={isRecording ? stopRecording : startRecording}
                 style={{
+                  flex: 1.2,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: '8px',
-                  padding: '12px',
-                  borderRadius: '8px',
-                  fontWeight: '600',
+                  gap: '10px',
+                  padding: '16px',
+                  borderRadius: '10px',
+                  fontWeight: '700',
+                  fontSize: '1rem',
                   cursor: 'pointer',
-                  border: isRecording ? '1px solid #ef4444' : '1px solid rgba(255,255,255,0.1)',
-                  background: isRecording ? 'rgba(239, 68, 68, 0.2)' : 'rgba(255,255,255,0.05)',
-                  color: isRecording ? '#f87171' : 'var(--text-main)',
+                  border: isRecording ? '2px solid #ef4444' : '1px solid #3b82f6',
+                  background: isRecording ? 'rgba(239, 68, 68, 0.25)' : 'linear-gradient(135deg, #2563eb, #1d4ed8)',
+                  color: '#fff',
+                  boxShadow: isRecording ? '0 0 20px rgba(239, 68, 68, 0.4)' : '0 4px 14px rgba(37, 99, 235, 0.4)',
                   transition: 'all 0.2s'
                 }}
               >
-                {isRecording ? <MicOff size={18} /> : <Mic size={18} />}
+                {isRecording ? <MicOff size={22} /> : <Mic size={22} />}
                 {isRecording ? 'Stop Recording' : 'Record Mic'}
               </button>
 
-              <label
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
-                  padding: '12px',
-                  borderRadius: '8px',
-                  fontWeight: '600',
-                  cursor: 'pointer',
-                  border: '1px solid rgba(255,255,255,0.1)',
-                  background: 'rgba(255,255,255,0.05)',
-                  color: 'var(--text-main)',
-                  textAlign: 'center'
-                }}
-              >
+              <label style={{
+                flex: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                padding: '16px',
+                borderRadius: '10px',
+                border: '1px dashed rgba(255,255,255,0.2)',
+                background: 'rgba(255,255,255,0.03)',
+                color: 'var(--text-main)',
+                fontSize: '0.88rem',
+                fontWeight: '600',
+                cursor: 'pointer',
+                textAlign: 'center'
+              }}>
                 <Upload size={18} />
                 Upload WAV
                 <input type="file" accept="audio/*" onChange={handleFileUpload} style={{ display: 'none' }} />
@@ -327,316 +548,251 @@ export const DemoControl: React.FC<DemoControlProps> = ({
             </div>
 
             {audioBlobUrl && (
-              <div style={{ marginTop: '10px', marginBottom: '14px' }}>
-                <audio controls src={audioBlobUrl} style={{ width: '100%', height: '36px' }} />
-              </div>
+              <audio controls src={audioBlobUrl} style={{ width: '100%', height: '36px', marginTop: '6px' }} />
             )}
 
-            {/* Action Sensitivity & Amount Selector */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', paddingTop: '14px', borderTop: '1px solid var(--border-subtle)' }}>
+            {/* Rolling Score Timeline (Past 8 windows) */}
+            <div style={{ marginTop: '10px', borderTop: '1px solid var(--border-subtle)', paddingTop: '14px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '8px' }}>
+                <span>Rolling Score Timeline (2s Windows)</span>
+                <span style={{ fontFamily: 'monospace' }}>p95: {verdict ? `${verdict.processing_latency_ms}ms` : '29.3ms'}</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'flex-end', gap: '6px', height: '48px', background: 'rgba(0,0,0,0.2)', padding: '6px', borderRadius: '6px' }}>
+                {historyScores.map((s, idx) => {
+                  const h = Math.min(Math.max((s / 6.0) * 100, 10), 100);
+                  const color = s > 3.0 ? '#ef4444' : s > 1.25 ? '#f59e0b' : '#10b981';
+                  return (
+                    <div key={idx} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%', justifyContent: 'flex-end' }}>
+                      <div style={{ width: '100%', height: `${h}%`, background: color, borderRadius: '2px' }} title={`Score: ${s.toFixed(2)}`} />
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* COLUMN 3: Scenario Stepper, Actions & Journey Highlighter */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+          {/* Preset Buttons */}
+          <div className="glass-panel" style={{ padding: '20px' }}>
+            <h4 style={{ fontSize: '0.92rem', fontWeight: '700', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Sparkles size={16} style={{ color: '#f59e0b' }} /> 4 Stage-2 Threat Presets
+            </h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <button
+                onClick={() => applyPreset('scenario_a')}
+                style={{
+                  padding: '9px 12px',
+                  borderRadius: '7px',
+                  border: activeScenario === 'scenario_a' ? '1px solid #10b981' : '1px solid var(--border-subtle)',
+                  background: activeScenario === 'scenario_a' ? 'rgba(16, 185, 129, 0.12)' : 'rgba(255,255,255,0.02)',
+                  color: 'var(--text-main)',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  cursor: 'pointer',
+                  fontSize: '0.82rem'
+                }}
+              >
+                <span>1. Legit Balance Check</span>
+                <span className="tier-badge tier-badge-green" style={{ fontSize: '0.65rem', padding: '2px 6px' }}>GREEN</span>
+              </button>
+
+              <button
+                onClick={() => applyPreset('scenario_b')}
+                style={{
+                  padding: '9px 12px',
+                  borderRadius: '7px',
+                  border: activeScenario === 'scenario_b' ? '1px solid #ef4444' : '1px solid var(--border-subtle)',
+                  background: activeScenario === 'scenario_b' ? 'rgba(239, 68, 68, 0.12)' : 'rgba(255,255,255,0.02)',
+                  color: 'var(--text-main)',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  cursor: 'pointer',
+                  fontSize: '0.82rem'
+                }}
+              >
+                <span>2. Cloned Voice Add-Payee</span>
+                <span className="tier-badge tier-badge-red" style={{ fontSize: '0.65rem', padding: '2px 6px' }}>RED</span>
+              </button>
+
+              <button
+                onClick={() => applyPreset('scenario_c')}
+                style={{
+                  padding: '9px 12px',
+                  borderRadius: '7px',
+                  border: activeScenario === 'scenario_c' ? '1px solid #f59e0b' : '1px solid var(--border-subtle)',
+                  background: activeScenario === 'scenario_c' ? 'rgba(245, 158, 11, 0.12)' : 'rgba(255,255,255,0.02)',
+                  color: 'var(--text-main)',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  cursor: 'pointer',
+                  fontSize: '0.82rem'
+                }}
+              >
+                <span>3. Accented on Noisy Line (False-Positive)</span>
+                <span className="tier-badge tier-badge-amber" style={{ fontSize: '0.65rem', padding: '2px 6px' }}>AMBER</span>
+              </button>
+
+              <button
+                onClick={() => applyPreset('scenario_d')}
+                style={{
+                  padding: '9px 12px',
+                  borderRadius: '7px',
+                  border: activeScenario === 'scenario_d' ? '1px solid #f97316' : '1px solid var(--border-subtle)',
+                  background: activeScenario === 'scenario_d' ? 'rgba(249, 115, 22, 0.12)' : 'rgba(255,255,255,0.02)',
+                  color: 'var(--text-main)',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  cursor: 'pointer',
+                  fontSize: '0.82rem'
+                }}
+              >
+                <span>4. UPI Collect Scam (S1)</span>
+                <span className="tier-badge tier-badge-orange" style={{ fontSize: '0.65rem', padding: '2px 6px' }}>ORANGE</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Action Selector */}
+          <div className="glass-panel" style={{ padding: '16px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '10px' }}>
               <div>
-                <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>Banking Action Type</label>
+                <label style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Action</label>
                 <select
                   value={selectedAction}
                   onChange={(e) => setSelectedAction(e.target.value)}
                   style={{
                     width: '100%',
-                    padding: '10px 12px',
-                    borderRadius: '8px',
+                    padding: '8px 10px',
+                    borderRadius: '6px',
                     background: 'rgba(0,0,0,0.3)',
                     border: '1px solid var(--border-subtle)',
                     color: 'var(--text-main)',
-                    fontSize: '0.9rem'
+                    fontSize: '0.82rem'
                   }}
                 >
-                  <option value="balance_inquiry">Balance Inquiry (Low Sensitivity)</option>
-                  <option value="add_payee">Add Beneficiary / Payee (High Sensitivity)</option>
-                  <option value="raise_limit">Raise Daily Limit (High Sensitivity)</option>
-                  <option value="credentials_reset">Reset Passcode / PIN (Critical)</option>
-                  <option value="sim_swap_signal">SIM Swap Signal Reported (Critical)</option>
-                  <option value="upi_collect_request">UPI Collect Request (Scenario S1)</option>
-                  <option value="wire_transfer">RTGS / Wire Transfer</option>
+                  <option value="balance_inquiry">Balance Inquiry</option>
+                  <option value="add_payee">Add Payee</option>
+                  <option value="raise_limit">Raise Limit</option>
+                  <option value="upi_collect_request">UPI Collect</option>
                 </select>
               </div>
 
               <div>
-                <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>Transfer Amount (INR ₹)</label>
+                <label style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Amount (₹)</label>
                 <input
                   type="number"
                   value={amount}
                   onChange={(e) => setAmount(Number(e.target.value))}
                   style={{
                     width: '100%',
-                    padding: '10px 12px',
-                    borderRadius: '8px',
+                    padding: '8px 10px',
+                    borderRadius: '6px',
                     background: 'rgba(0,0,0,0.3)',
                     border: '1px solid var(--border-subtle)',
                     color: 'var(--text-main)',
-                    fontSize: '0.9rem'
+                    fontSize: '0.82rem'
                   }}
                 />
               </div>
             </div>
           </div>
 
-          {/* India-Grounded Scenario Presets */}
-          <div className="glass-panel" style={{ padding: '22px' }}>
-            <h3 style={{ fontSize: '1.05rem', fontWeight: '600', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Sparkles size={18} style={{ color: '#f59e0b' }} /> Threat Scenario Presets (Stage 2)
-            </h3>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <button
-                onClick={() => applyPreset('scenario_a')}
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  padding: '12px 14px',
-                  borderRadius: '8px',
-                  border: activeScenario === 'scenario_a' ? '1px solid #10b981' : '1px solid var(--border-subtle)',
-                  background: activeScenario === 'scenario_a' ? 'rgba(16, 185, 129, 0.12)' : 'rgba(255,255,255,0.03)',
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  color: 'var(--text-main)'
-                }}
-              >
-                <div>
-                  <div style={{ fontWeight: '600', fontSize: '0.9rem' }}>Scenario A: Legitimate Customer</div>
-                  <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Natural voice, balance check → Zero added friction</div>
-                </div>
-                <span className="tier-badge tier-badge-green" style={{ fontSize: '0.7rem', padding: '3px 8px' }}>GREEN</span>
-              </button>
-
-              <button
-                onClick={() => applyPreset('scenario_b')}
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  padding: '12px 14px',
-                  borderRadius: '8px',
-                  border: activeScenario === 'scenario_b' ? '1px solid #ef4444' : '1px solid var(--border-subtle)',
-                  background: activeScenario === 'scenario_b' ? 'rgba(239, 68, 68, 0.12)' : 'rgba(255,255,255,0.03)',
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  color: 'var(--text-main)'
-                }}
-              >
-                <div>
-                  <div style={{ fontWeight: '600', fontSize: '0.9rem' }}>Scenario B: Cloned-Voice Attacker (S2)</div>
-                  <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Contact center payee add → Push denied → Red Freeze</div>
-                </div>
-                <span className="tier-badge tier-badge-red" style={{ fontSize: '0.7rem', padding: '3px 8px' }}>RED</span>
-              </button>
-
-              <button
-                onClick={() => applyPreset('scenario_c')}
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  padding: '12px 14px',
-                  borderRadius: '8px',
-                  border: activeScenario === 'scenario_c' ? '1px solid #f59e0b' : '1px solid var(--border-subtle)',
-                  background: activeScenario === 'scenario_c' ? 'rgba(245, 158, 11, 0.12)' : 'rgba(255,255,255,0.03)',
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  color: 'var(--text-main)'
-                }}
-              >
-                <div>
-                  <div style={{ fontWeight: '600', fontSize: '0.9rem' }}>Scenario C: Accented on Noisy Line</div>
-                  <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Genuine rural dialect → One-tap Amber clearance</div>
-                </div>
-                <span className="tier-badge tier-badge-amber" style={{ fontSize: '0.7rem', padding: '3px 8px' }}>AMBER</span>
-              </button>
-
-              <button
-                onClick={() => applyPreset('scenario_d')}
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  padding: '12px 14px',
-                  borderRadius: '8px',
-                  border: activeScenario === 'scenario_d' ? '1px solid #f97316' : '1px solid var(--border-subtle)',
-                  background: activeScenario === 'scenario_d' ? 'rgba(249, 115, 22, 0.12)' : 'rgba(255,255,255,0.03)',
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  color: 'var(--text-main)'
-                }}
-              >
-                <div>
-                  <div style={{ fontWeight: '600', fontSize: '0.9rem' }}>Scenario D: Customer-Side UPI Scam (S1)</div>
-                  <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Fake relative call → Intercepted at UPI Gateway hook</div>
-                </div>
-                <span className="tier-badge tier-badge-orange" style={{ fontSize: '0.7rem', padding: '3px 8px' }}>ORANGE</span>
-              </button>
+          {/* End-to-End Journey Stepper */}
+          <div className="glass-panel" style={{ padding: '18px' }}>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '10px' }}>
+              End-to-End Incident Lifecycle
             </div>
-          </div>
-        </div>
-
-        {/* Right Column: Live Verdict Display & Safety Invariants */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          {/* Real-Time Tier Verdict Card */}
-          <div className="glass-panel" style={{ padding: '24px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                Fused Policy Engine Verdict
-              </span>
-              <span style={{ fontSize: '0.8rem', color: 'var(--text-dim)', fontFamily: 'monospace' }}>
-                Session: {verdict ? verdict.session_id : sessionId}
-              </span>
-            </div>
-
-            {/* Big Tier Badge */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '20px' }}>
-              {verdict?.tier === 'GREEN' && (
-                <div className="tier-badge tier-badge-green" style={{ fontSize: '1.25rem', padding: '10px 22px' }}>
-                  <ShieldCheck size={26} /> GREEN: PASS WORKFLOW
-                </div>
-              )}
-              {verdict?.tier === 'AMBER' && (
-                <div className="tier-badge tier-badge-amber" style={{ fontSize: '1.25rem', padding: '10px 22px' }}>
-                  <AlertTriangle size={26} /> AMBER: IN-APP STEP-UP
-                </div>
-              )}
-              {verdict?.tier === 'ORANGE' && (
-                <div className="tier-badge tier-badge-orange" style={{ fontSize: '1.25rem', padding: '10px 22px' }}>
-                  <Lock size={26} /> ORANGE: MANDATORY OOB
-                </div>
-              )}
-              {verdict?.tier === 'RED' && (
-                <div className="tier-badge tier-badge-red" style={{ fontSize: '1.25rem', padding: '10px 22px' }}>
-                  <Flame size={26} /> RED: SECURITY HOLD
-                </div>
-              )}
-              {!verdict && (
-                <div style={{ color: 'var(--text-muted)', fontSize: '1rem' }}>Awaiting audio input or scenario selection...</div>
-              )}
-            </div>
-
-            {/* Fused Risk & Multi-Family Breakdown */}
-            {verdict && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '20px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>Accumulated Risk Score (R):</span>
-                  <span style={{ fontSize: '1.1rem', fontWeight: '700', color: verdict.risk_score > 3.0 ? '#f87171' : '#34d399', fontFamily: 'monospace' }}>
-                    {verdict.risk_score.toFixed(2)}
-                  </span>
-                </div>
-
-                {/* 3 Family LLR Progress Bars */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
-                  <div style={{ background: 'rgba(0,0,0,0.25)', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginBottom: '4px' }}>Audio LLR (45%)</div>
-                    <div style={{ fontSize: '0.95rem', fontWeight: '700', color: verdict.llr_audio > 1.0 ? '#fb923c' : '#94a3b8', fontFamily: 'monospace' }}>
-                      {verdict.llr_audio.toFixed(2)}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {journeySteps.map((step, idx) => {
+                const isActive = idx === currentStepIndex;
+                const isPassed = idx < currentStepIndex;
+                return (
+                  <div key={idx} style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    padding: '6px 10px',
+                    borderRadius: '6px',
+                    background: isActive ? 'rgba(59, 130, 246, 0.15)' : 'transparent',
+                    border: isActive ? '1px solid #3b82f6' : '1px solid transparent'
+                  }}>
+                    <div style={{
+                      width: '20px',
+                      height: '20px',
+                      borderRadius: '50%',
+                      background: isPassed ? '#10b981' : isActive ? '#3b82f6' : 'rgba(255,255,255,0.1)',
+                      color: '#fff',
+                      fontSize: '0.7rem',
+                      fontWeight: '700',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      {idx + 1}
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '0.82rem', fontWeight: isActive ? '700' : '500', color: isActive ? '#fff' : 'var(--text-muted)' }}>
+                        {step.title}
+                      </div>
+                      <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)' }}>{step.desc}</div>
                     </div>
                   </div>
+                );
+              })}
+            </div>
 
-                  <div style={{ background: 'rgba(0,0,0,0.25)', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginBottom: '4px' }}>Interaction (25%)</div>
-                    <div style={{ fontSize: '0.95rem', fontWeight: '700', color: verdict.llr_interaction > 1.0 ? '#fb923c' : '#94a3b8', fontFamily: 'monospace' }}>
-                      {verdict.llr_interaction.toFixed(2)}
-                    </div>
-                  </div>
-
-                  <div style={{ background: 'rgba(0,0,0,0.25)', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginBottom: '4px' }}>Transaction (30%)</div>
-                    <div style={{ fontSize: '0.95rem', fontWeight: '700', color: verdict.llr_transaction > 1.0 ? '#fb923c' : '#94a3b8', fontFamily: 'monospace' }}>
-                      {verdict.llr_transaction.toFixed(2)}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Safety Invariant Banner */}
-                {verdict.safety_rule_applied && (
-                  <div style={{ padding: '10px 14px', borderRadius: '8px', background: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.3)', fontSize: '0.82rem', color: '#93c5fd' }}>
-                    <strong>Safety Rule Enforced:</strong> Audio alone capped at Orange. Cannot trigger Red unilateral freeze without corroboration.
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Quick Actions to Out-of-Band & Case Console */}
-            <div style={{ display: 'flex', gap: '12px', marginTop: '10px' }}>
+            {/* Quick Link to Customer Phone / Analyst */}
+            <div style={{ display: 'flex', gap: '8px', marginTop: '14px' }}>
               <button
                 onClick={handleTriggerStepUp}
                 style={{
                   flex: 1,
+                  padding: '9px 12px',
+                  borderRadius: '6px',
+                  background: '#2563eb',
+                  color: '#fff',
+                  border: 'none',
+                  fontSize: '0.78rem',
+                  fontWeight: '600',
+                  cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: '8px',
-                  padding: '12px',
-                  borderRadius: '8px',
-                  fontWeight: '600',
-                  background: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
-                  color: '#fff',
-                  border: 'none',
-                  cursor: 'pointer'
+                  gap: '4px'
                 }}
               >
-                <Smartphone size={18} /> Test Out-Of-Band Push
+                <Smartphone size={14} /> Mobile App Push
               </button>
-
               <button
                 onClick={onNavigateToAnalyst}
                 style={{
                   flex: 1,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
-                  padding: '12px',
-                  borderRadius: '8px',
-                  fontWeight: '600',
+                  padding: '9px 12px',
+                  borderRadius: '6px',
                   background: 'rgba(255,255,255,0.06)',
                   color: 'var(--text-main)',
                   border: '1px solid var(--border-subtle)',
-                  cursor: 'pointer'
+                  fontSize: '0.78rem',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '4px'
                 }}
               >
-                View Analyst Queue <ArrowRight size={16} />
+                Analyst Queue <ArrowRight size={14} />
               </button>
             </div>
           </div>
-
-          {/* Plain-Language Explainable Reason Codes Card */}
-          <div className="glass-panel" style={{ padding: '22px' }}>
-            <h3 style={{ fontSize: '1.05rem', fontWeight: '600', marginBottom: '14px' }}>Explainable Reason Codes (FR-14 & FR-20)</h3>
-
-            {verdict?.reason_codes && verdict.reason_codes.length > 0 ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {verdict.reason_codes.map((rc, idx) => (
-                  <div
-                    key={idx}
-                    style={{
-                      padding: '12px',
-                      borderRadius: '8px',
-                      background: 'rgba(0,0,0,0.2)',
-                      border: '1px solid var(--border-subtle)'
-                    }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                      <span style={{ fontSize: '0.8rem', fontWeight: '700', color: '#38bdf8', fontFamily: 'monospace' }}>
-                        {rc.code}
-                      </span>
-                      <span style={{ fontSize: '0.72rem', padding: '2px 6px', borderRadius: '4px', background: rc.severity === 'HIGH' || rc.severity === 'CRITICAL' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(245, 158, 11, 0.2)', color: rc.severity === 'HIGH' || rc.severity === 'CRITICAL' ? '#f87171' : '#fbbf24' }}>
-                        {rc.severity}
-                      </span>
-                    </div>
-                    <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{rc.plain_language_explanation}</p>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div style={{ color: 'var(--text-dim)', fontSize: '0.85rem' }}>No active reason codes.</div>
-            )}
-          </div>
         </div>
+
       </div>
     </div>
   );

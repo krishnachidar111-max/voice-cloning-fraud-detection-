@@ -184,3 +184,8 @@ export async function verifyAuditChain() {
   const res = await fetch(`${API_BASE_URL}/api/audit/verify`);
   return res.json();
 }
+
+export async function fetchEvalSummary() {
+  const res = await fetch(`${API_BASE_URL}/api/eval/summary`);
+  return res.json();
+}
