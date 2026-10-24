@@ -68,3 +68,29 @@ Every technical decision, scope adjustment, or tradeoff made during the 48-hour 
 - **Context:** Acceptance checklist requires one-command startup for backend, frontend, and offline evaluation.
 - **Decision:** Updated `start.bat`, `start.ps1`, and `package.json` to launch backend and frontend directly from the workspace root (`backend` and `frontend`), using Python 3.12 uvicorn and Vite dev server. Ensured offline resilience without external runtime network calls.
 
+---
+
+### DEC-009: Learned Audio Engine Architecture (`LearnedAudioEngine`)
+- **Date/Time:** 2026-10-24 23:10 IST
+- **Context:** Replace hand-tuned spectral heuristic with a trainable ML classification head trained on multi-dimensional acoustic features, while maintaining instant CPU inference and graceful fallback.
+- **Decision:** Implemented `backend/models/learned_detector.py` with 25-feature acoustic extraction (phase jitter, high/mid/low frequency energy, spectral flatness, centroid, rolloff, mel filterbanks, and contrast), paired with scikit-learn `LogisticRegression` and `IsotonicRegression` calibration saved in `models/head.joblib`. If the model file is absent, automatically activates fallback mode and exposes `fallback_mode` to API callers and the UI.
+
+---
+
+### DEC-010: Dynamic Metric Reporting & Anti-Fabrication Automated Guardrail
+- **Date/Time:** 2026-10-24 23:18 IST
+- **Context:** Prevent discrepancies between measured reports and documentation (e.g., hardcoded claims vs actual benchmark runs).
+- **Decision:** Created `scripts/update_readme_metrics.py` to synchronize `README.md` benchmark tables directly from `reports/*.json`. Implemented `backend/tests/test_no_fabricated_metrics.py` which fails in CI/pytest if any documented metric differs from actual measured reports. Updated `/api/eval/summary` to read dynamic JSON files at request time.
+
+---
+
+### DEC-011: Frontend Consolidation into 4 Judge-Focused Tabs with System Fonts
+- **Date/Time:** 2026-10-24 23:24 IST
+- **Context:** Judging rubric specifies a clean 4-tab interface: Live Call, Customer Phone, Analyst, and Trust, with zero CDN dependencies for offline execution.
+- **Decision:** Consolidated `App.tsx` into 4 dedicated screens:
+  1. `Live Call`: 3-column layout (Status card with plain English sentence, Waveform + Big Record button, and Scenario stepper with 4 presets and lifecycle tracker).
+  2. `Customer Phone`: Realistic mobile device frame with Approve / Deny and number matching.
+  3. `Analyst`: Queue, dossier, dual-control high-value hold, and clear false-positive resolution path.
+  4. `Trust`: Live benchmark figures from `reports/`, DPDP Act privacy checklist, and Real vs MOCK disclosure table.
+  Removed Google Fonts CDN from `index.html` and `index.css`, replacing with native system font stack.
+

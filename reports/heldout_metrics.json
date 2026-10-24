@@ -10,35 +10,35 @@
     "StyleTTS2",
     "Tortoise_Clone"
   ],
-  "eer_percent": 46.0,
-  "recall_at_2pct_fpr_percent": 22.4,
-  "ece": 0.2513,
-  "min_tdcf": 0.0956,
+  "eer_percent": 15.2,
+  "recall_at_2pct_fpr_percent": 0.0,
+  "ece": 0.2413,
+  "min_tdcf": 0.118,
   "per_generator_metrics": {
     "ElevenLabs_v2": {
       "test_samples": 100,
       "detected_rate": 100.0,
-      "mean_synthetic_score": 0.9588
+      "mean_synthetic_score": 0.9988
     },
     "HiFiGAN_Vocoder": {
       "test_samples": 100,
       "detected_rate": 100.0,
-      "mean_synthetic_score": 0.9576
+      "mean_synthetic_score": 0.9988
     },
     "VITS_TTS": {
       "test_samples": 100,
       "detected_rate": 100.0,
-      "mean_synthetic_score": 0.9454
+      "mean_synthetic_score": 0.9987
     },
     "StyleTTS2": {
       "test_samples": 100,
-      "detected_rate": 93.0,
-      "mean_synthetic_score": 0.8818
+      "detected_rate": 99.0,
+      "mean_synthetic_score": 0.9908
     },
     "Tortoise_Clone": {
       "test_samples": 100,
-      "detected_rate": 95.0,
-      "mean_synthetic_score": 0.8863
+      "detected_rate": 100.0,
+      "mean_synthetic_score": 0.9988
     }
   }
 }

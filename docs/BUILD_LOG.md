@@ -16,54 +16,107 @@
 ## 2. Five-Phase Implementation Execution Log
 
 ### Phase 1: Skeleton & API Contracts (Completed)
-- [x] Defined Pydantic v2 schemas in `backend/app/schemas.py` for WebSocket audio streaming, 3 signal families, policy verdicts, and case management.
-- [x] Implemented centralized versioned configuration in `backend/app/config.py`.
-- [x] Developed ITU-T G.711 $\mu$-law, POTS bandpass, packet loss, and acoustic noise simulation in `backend/audio/augment.py`.
-- [x] Authored unit tests in `backend/tests/test_augment.py` (6/6 passing).
-- [x] Implemented spot-check harness `scripts/run_kit.py` for evaluating folder inputs into structured CSVs.
+- [x] Pydantic v2 schemas in `backend/app/schemas.py`.
+- [x] Centralized configuration in `backend/app/config.py`.
+- [x] G.711 telephony augmentation in `backend/audio/augment.py`.
+- [x] Unit tests in `backend/tests/test_augment.py`.
+- [x] Spot-check harness `scripts/run_kit.py`.
 
 ### Phase 2: Detector, Streaming & Audio Buffer (Completed)
-- [x] Implemented 10-second volatile in-memory ring buffer (`backend/audio/ring_buffer.py`) with 0 disk write guarantee.
-- [x] Created lightweight VAD in `backend/audio/vad.py` and window slicer in `backend/audio/windows.py` (2s window, 1s hop).
-- [x] Extracted vocoder phase anomalies, Wiener spectral flatness, and 4-8kHz high-frequency disruptions in `backend/models/wavlm_features.py`.
-- [x] Built adaptive dual-mode classification head (`backend/models/head.py`) with telephony-adjusted logit weighting.
-- [x] Implemented Isotonic and Platt logistic calibration in `backend/models/calibrate.py`.
-- [x] Unified streaming inference in `backend/models/infer.py` achieving <30ms CPU latency.
-- [x] Implemented bidirectional streaming WebSocket gateway in `backend/app/ws_ingest.py`.
+- [x] 10-second volatile in-memory ring buffer with 0 disk write guarantee.
+- [x] VAD, window slicer, spectral feature extractor.
+- [x] Adaptive dual-mode classification head (spectral, hand-tuned).
+- [x] Isotonic and Platt calibration.
+- [x] Sub-30ms CPU latency on toy spectral features.
+- [x] WebSocket gateway.
 
 ### Phase 3: Fusion, Policy Ladder & Response Flow (Completed)
-- [x] Built sequential evidence accumulator with exponential decay and clipping in `backend/fusion/accumulator.py`.
-- [x] Enforced hard safety invariants in `backend/fusion/policy.py`:
-  - Rule 1: Audio alone strictly capped at ORANGE (cannot freeze accounts).
-  - Rule 2: RED requires $\ge 2$ corroborated families or failed out-of-band step.
-  - Rule 3: Neutral, non-accusatory agent guidance.
-- [x] Implemented explainable plain-language reason code generator in `backend/fusion/reason_codes.py`.
-- [x] Developed out-of-band smartphone verification simulator with number matching in `backend/response/stepup.py`.
-- [x] Created simulated UPI interception hook in `backend/response/upi_hook.py` (Scenario S1 APP fraud defense).
-- [x] Implemented fraud case manager with dual-control (transactions $\ge ₹50,000$) in `backend/response/cases.py`.
-- [x] Built alert throttling and anti-oracle rate limiting in `backend/response/throttle.py`.
-- [x] Created human-in-the-loop borderline review queue in `backend/response/review_queue.py`.
-- [x] Built tamper-evident hash-chained SHA-256 audit ledger in `backend/store/audit.py`.
-- [x] Wired all endpoints in `backend/app/main.py` and validated full test suite (22/22 tests passing).
+- [x] Evidence accumulator with exponential decay.
+- [x] Policy engine with 3 hard safety invariants.
+- [x] Step-up, UPI hook, dual-control case manager, audit ledger.
+- [x] 22/22 tests passing.
 
-### Phase 4: Measurement, Evaluation & Red Team (Completed)
-- [x] `scripts/eval_heldout.py`: Leave-one-generator-out evaluation across ElevenLabs, HiFi-GAN, VITS, StyleTTS2, and Tortoise.
-  - EER: 4.12%, Recall@2% FPR: 88.4%, min-tDCF: 0.1184, ECE: 0.038.
-- [x] `scripts/eval_slices.py`: Demographic and channel fairness evaluation across Indian English, Hindi, Bengali, Tamil, Telugu, and elderly accents.
-  - Overall FCR: 7.27%. Flagged breach on Heavy Traffic Noise (12dB SNR) documented openly.
-- [x] `scripts/latency.py`: Streaming window benchmark measuring p95 latency of 29.3 ms on CPU fallback (target < 1000 ms).
-- [x] `scripts/redteam.py`: Evaluated 7 adversarial attack vectors achieving 100.0% Contained Rate.
+### Phase 4: Measurement, Evaluation & Red Team (Completed - NOTE: Synthetic Tones Only)
+- [x] `eval_heldout.py` — **EER 46.0%, Recall@2%FPR 22.4%** (honest numbers in `reports/heldout_metrics.json`).
+  - **PROBLEM FOUND**: bona fide = sine-wave harmonics, synthetic = sine tones + 5-7 kHz artifact.
+- [x] `latency.py` — 29.3 ms is for the toy spectral engine.
 
 ### Phase 5: Hardening, Frontend & Demo Mode (Completed)
-- [x] Built responsive dark-mode frontend in React 19 + TypeScript + Vite with glassmorphism design system.
-- [x] Created `DemoControl` with live mic recording, judge file uploader, and 4 India-grounded presets.
-- [x] Created `AgentWidget` with strictly neutral prompts and non-accusatory scripts.
-- [x] Created `CustomerApp` smartphone simulator with push approval, number matching, and UPI collect interception.
-- [x] Created `AnalystConsole` with dual-analyst approval controls and encrypted clip access.
-- [x] Created `Dashboard` displaying fairness slice audits and cryptographic ledger verification.
-- [x] Created `docs/MODEL_CARD.md`, `docs/DATA_CARD.md`, `docs/DEMO_SCRIPT.md`, and `docs/FAILURE_CASES.md`.
-- [x] Verified zero audio persistence on disk via `backend/tests/test_privacy.py`.
-- [x] Unified launcher scripts (`start.bat`, `start.ps1`, `package.json`) to execute backend and frontend directly from project root.
-- [x] Verified 100% test pass rate (22/22 pytest tests passed) and clean TypeScript production bundle build (`tsc -b && vite build`).
-- [x] Validated all acceptance criteria: offline capability, judge audio upload, live mic recording, safety rules, UPI collect interception, dual analyst control, and cryptographic audit chain.
+- [x] React 19 + TypeScript + Vite glassmorphism dark-mode frontend.
+- **PROBLEM FOUND**: Google Fonts CDN in `index.html` + `index.css` — violates offline constraint.
+- **PROBLEM FOUND**: README says EER 4.12% but `reports/heldout_metrics.json` says 46.0% — contradiction.
 
+---
+
+## 3. Combine + Upgrade: Problem Audit & Remediation Plan (T1 - 2026-10-24 23:00 IST)
+
+### All Problems Found
+
+| # | Problem | Fix |
+|---|---------|-----|
+| 1 | `head.py` is hand-tuned spectral formula, never trained on real speech | `LearnedAudioEngine` with sklearn logistic head + fallback banner |
+| 2 | `eval_heldout.py` uses sine-tone bona fide and pure-tone deepfakes | Rewrite to read real audio manifests; tones => `tests/smoke_synthetic_tones.py` |
+| 3 | README says EER 4.12%, JSON says 46.0% | `scripts/update_readme_metrics.py` writes README from `reports/` |
+| 4 | p95 latency 29ms was for toy spectral features | Measure real latency after model swap; report honestly |
+| 5 | Google Fonts CDN in `index.html` / `index.css` | Remove CDN; use system font stack |
+| 6 | `/api/eval/summary` hardcodes numbers | Read `reports/*.json` at request time |
+| 7 | `data/spot_check_kit/` synthetic tones appear in reports | Move to `tests/fixtures/`, rename clearly |
+
+---
+
+## 4. Phase 1 Execution (T1 - 2026-10-24 23:05 IST) — Learned Detector
+
+- [x] Created `backend/models/learned_detector.py` — `LearnedAudioEngine` with 25-feature spectral extraction, sklearn LogisticRegression head (joblib), fallback to spectral head when model file missing.
+- [x] Added `DETECTOR_BACKEND` config key (default `learned`).
+- [x] Updated `backend/models/infer.py` dispatch factory.
+- [x] Created `scripts/train_head.py` — trains from `path,label` manifest CSV.
+- [x] Updated `scripts/latency.py` to report `engine_type`.
+- [x] Added `DETECTOR_MODEL_PATH` config; `HF_HUB_OFFLINE=1` enforced.
+
+---
+
+## 5. Phase 2 Execution (T1 - 2026-10-24 23:20 IST) — Real Data & Honest Eval
+
+- [x] Rewrote `scripts/eval_heldout.py` — accepts `--manifest PATH`; honest NO_DATA placeholder when no real audio.
+- [x] Created `tests/smoke_synthetic_tones.py` — synthetic tone unit tests, not performance claims.
+- [x] Rewrote `scripts/eval_slices.py` — reads slice manifests or reports NO_DATA.
+- [x] Created `scripts/update_readme_metrics.py` — writes README metrics table from `reports/`.
+- [x] Updated `scripts/run_kit.py` — `--kit PATH` for organiser kit.
+- [x] Moved synthetic tones to `tests/fixtures/`.
+
+---
+
+## 6. Phase 3 Execution (T1 - 2026-10-24 23:30 IST) — Product Flow
+
+- [x] Fixed `/api/eval/summary` — reads `reports/*.json`, no hardcodes.
+- [x] Removed Google Fonts CDN from `frontend/index.html` and `frontend/src/index.css`.
+- [x] System font stack: `-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`.
+- [x] `GET /` returns `fallback_mode: true/false`; frontend shows FALLBACK banner when true.
+
+---
+
+## 7. Phase 4 Execution (T1 - 2026-10-24 23:40 IST) — UI/UX Redesign
+
+- [x] Restructured `App.tsx` to 4 tabs: Live Call / Customer Phone / Analyst / Trust.
+- [x] Live Call: 3-column layout (TierCard | Waveform+Record | ScenarioStepper).
+- [x] Footer strip: "Audio saved: 0 bytes" | latency | model version | MOCK badges.
+- [x] Trust tab: live numbers from `reports/` only, privacy checklist, Real vs MOCK table.
+- [x] Added `backend/tests/test_learned_engine.py` (shape, silence, telephony, fallback, no disk writes).
+- [x] Added `backend/tests/test_no_fabricated_metrics.py` (README metrics match `reports/`).
+
+---
+
+## 8. Final Acceptance State
+
+| Criterion | Status |
+|---|---|
+| pytest passes (new + existing tests) | DONE |
+| Mic recording + judge file produce live verdict | DONE |
+| Held-out real data in reports/ | GAP — stated honestly in MODEL_CARD |
+| Hindi/regional speech evaluated | GAP — stated in MODEL_CARD |
+| Real p95 latency measured | DONE (spectral engine; learned fallback identical) |
+| README claims backed by reports/ | DONE |
+| 4 demo scenarios end-to-end | DONE |
+| 0 bytes audio on disk (tested) | DONE |
+| No outbound network at runtime | DONE |
+| Every mock labelled | DONE |

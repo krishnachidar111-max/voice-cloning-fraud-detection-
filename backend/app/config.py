@@ -17,6 +17,15 @@ class EchoGuardSettings(BaseSettings):
     DEBUG: bool = False
     HOST: str = "127.0.0.1"
     PORT: int = 8000
+
+    # Detector Backend Selection
+    # 'learned' = use models/head.joblib when present (falls back to spectral).
+    # 'spectral' = always use the hand-tuned spectral heuristic.
+    DETECTOR_BACKEND: str = "learned"
+    DETECTOR_MODEL_PATH: str = ""  # overrides default models/head.joblib path when set
+
+    # Offline enforcement (never call HuggingFace Hub at runtime)
+    HF_HUB_OFFLINE: str = "1"
     CORS_ORIGINS: List[str] = [
         "http://localhost:5173",
         "http://127.0.0.1:5173",
@@ -64,6 +73,10 @@ class EchoGuardSettings(BaseSettings):
     AUDIT_CHAIN_SALT: str = "EchoGuard-IITDelhi-2026-ImmutableAuditSalt"
 
     model_config = SettingsConfigDict(env_prefix="ECHOGUARD_", case_sensitive=True)
+
+    def model_post_init(self, __context) -> None:  # type: ignore[override]
+        import os
+        os.environ.setdefault("HF_HUB_OFFLINE", self.HF_HUB_OFFLINE)
 
 
 settings = EchoGuardSettings()
