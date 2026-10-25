@@ -64,7 +64,7 @@ export const App: React.FC = () => {
 
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <h1 style={{ fontSize: '1.2rem', fontWeight: '800', letterSpacing: '-0.02em' }}>EchoGuard AI</h1>
+              <h1 style={{ fontSize: '1.2rem', fontWeight: '800', letterSpacing: '-0.02em' }}>Phantom Trace</h1>
               <span style={{ fontSize: '0.7rem', padding: '2px 6px', background: 'rgba(59, 130, 246, 0.2)', color: '#60a5fa', borderRadius: '4px', fontWeight: '700' }}>v2.0</span>
               <span className="mock-pill">MOCK CORE BANKING</span>
             </div>

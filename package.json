@@ -1,7 +1,7 @@
 {
-  "name": "echoguard-ai-root",
+  "name": "phantom-trace-root",
   "version": "1.0.0",
-  "description": "EchoGuard AI - Root Workspace Scripts",
+  "description": "Phantom Trace - Root Workspace Scripts",
   "scripts": {
     "build": "npm --prefix frontend run build",
     "dev": "npm --prefix frontend run dev",

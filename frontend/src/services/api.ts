@@ -1,5 +1,5 @@
 /**
- * EchoGuard AI - Frontend API Service & WebSocket Client
+ * Phantom Trace - Frontend API Service & WebSocket Client
  */
 
 export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string) || 'http://127.0.0.1:8000';

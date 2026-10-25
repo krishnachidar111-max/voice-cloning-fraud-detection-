@@ -1,4 +1,4 @@
-# EchoGuard AI
+# Phantom Trace
 ## Real-Time Voice Cloning Fraud Detection & Banking Security System
 **Team ErrorX | Amazon AI Cyber Security Hackathon (Track 1: Voice Cloning Fraud Detection)**
 

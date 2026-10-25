@@ -1,7 +1,7 @@
 @echo off
 setlocal
 echo ========================================================
-echo       EchoGuard AI - Pre-Flight Check & Server Startup
+echo       Phantom Trace - Pre-Flight Check & Server Startup
 echo ========================================================
 echo.
 
@@ -33,12 +33,12 @@ if exist "%~dp0models\head.joblib" (
 
 echo.
 echo Starting Backend API at http://127.0.0.1:8000 ...
-start "EchoGuard AI - Backend" cmd /k "cd /d "%~dp0" && python -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8000 --reload"
+start "Phantom Trace - Backend" cmd /k "cd /d "%~dp0" && python -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8000 --reload"
 
 timeout /t 2 /nobreak >nul
 
 echo Starting Frontend UI at http://127.0.0.1:5173 ...
-start "EchoGuard AI - Frontend" cmd /k "cd /d "%~dp0frontend" && npm run dev"
+start "Phantom Trace - Frontend" cmd /k "cd /d "%~dp0frontend" && npm run dev"
 
 echo.
 echo ========================================================

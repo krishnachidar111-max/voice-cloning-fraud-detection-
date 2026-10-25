@@ -11,7 +11,7 @@ from pydantic import Field
 
 class EchoGuardSettings(BaseSettings):
     # Application & Environment
-    APP_NAME: str = "EchoGuard AI"
+    APP_NAME: str = "Phantom Trace"
     APP_VERSION: str = "2.0.0"
     ENVIRONMENT: str = "production"
     DEBUG: bool = False

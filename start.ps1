@@ -1,6 +1,6 @@
-# EchoGuard AI - Unified One-Command PowerShell Launcher
+# Phantom Trace - Unified One-Command PowerShell Launcher
 Write-Host "========================================================" -ForegroundColor Cyan
-Write-Host "       EchoGuard AI - Pre-Flight Check & Server Startup" -ForegroundColor Cyan
+Write-Host "       Phantom Trace - Pre-Flight Check & Server Startup" -ForegroundColor Cyan
 Write-Host "========================================================" -ForegroundColor Cyan
 
 $WorkspaceRoot = $PSScriptRoot

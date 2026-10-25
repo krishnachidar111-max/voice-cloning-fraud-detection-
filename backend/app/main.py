@@ -1,5 +1,5 @@
 """
-EchoGuard AI - Real-Time Voice Cloning Defense Gateway
+Phantom Trace - Real-Time Voice Cloning Defense Gateway
 FastAPI Application Entrypoint:
 - Real-Time WebSocket Audio Streaming (/ws/audio/{session_id})
 - One-Shot Audio Analysis for Judge-Supplied File Uploads (/api/audio/analyze)
