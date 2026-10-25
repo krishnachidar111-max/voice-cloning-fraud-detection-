@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "EchoGuard AI - Root Workspace Scripts",
   "scripts": {
+    "build": "npm --prefix frontend run build",
     "dev": "npm --prefix frontend run dev",
     "frontend": "npm --prefix frontend run dev",
     "backend": "python -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8000 --reload",

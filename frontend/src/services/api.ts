@@ -2,8 +2,8 @@
  * EchoGuard AI - Frontend API Service & WebSocket Client
  */
 
-export const API_BASE_URL = 'http://127.0.0.1:8000';
-export const WS_BASE_URL = 'ws://127.0.0.1:8000';
+export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string) || 'http://127.0.0.1:8000';
+export const WS_BASE_URL = (import.meta.env.VITE_WS_BASE_URL as string) || (API_BASE_URL.startsWith('http') ? API_BASE_URL.replace(/^http/, 'ws') : 'ws://127.0.0.1:8000');
 
 export interface ReasonCode {
   code: string;
